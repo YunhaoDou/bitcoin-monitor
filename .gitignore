@@ -1,0 +1,40 @@
+# Bitcoin Monitor — Git Ignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Logs
+logs/
+*.log
+
+# Data (auto-generated, not committed)
+data/reports/
+data/raw_*.json
+data/archive/
+
+# Strategy definitions (user content - tracked)
+# data/strategies/
+
+# Runtime
+*.pid
+*.sock
+*.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env
+.env
+.env.local

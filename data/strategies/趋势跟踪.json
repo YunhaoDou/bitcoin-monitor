@@ -1,0 +1,35 @@
+{
+  "name": "趋势跟踪",
+  "description": "当价格在SMA50上方且MACD多头时，跟随趋势。适合趋势市场。",
+  "logic": "AND",
+  "min_score": 2.0,
+  "conditions": [
+    {
+      "id": "price_above_sma",
+      "label": "价格高于SMA50",
+      "indicator": "technical.pct_above_sma50",
+      "operator": ">",
+      "value": 0,
+      "weight": 1.5
+    },
+    {
+      "id": "macd_bull",
+      "label": "MACD多头 (快线>信号线)",
+      "indicator": "technical.macd_histogram",
+      "operator": ">",
+      "value": 0,
+      "weight": 1.5
+    },
+    {
+      "id": "rsi_mid",
+      "label": "RSI中性偏强 (>55)",
+      "indicator": "technical.rsi_14",
+      "operator": ">",
+      "value": 55,
+      "weight": 1.0
+    }
+  ],
+  "updated_at": "2026-06-08T21:39:17.356576+00:00",
+  "created_at": "2026-06-08T21:39:17.356576+00:00",
+  "active": true
+}

@@ -1,0 +1,42 @@
+{
+  "name": "风险控制",
+  "description": "当多个过热信号同时出现时，产生卖出信号。用于风险管理。",
+  "logic": "OR",
+  "min_score": 1.5,
+  "conditions": [
+    {
+      "id": "rsi_overheat",
+      "label": "RSI过热 (>75)",
+      "indicator": "technical.rsi_14",
+      "operator": ">",
+      "value": 75,
+      "weight": -2.0
+    },
+    {
+      "id": "bb_overheat",
+      "label": "布林带上轨 (>90%)",
+      "indicator": "technical.bb_position_pct",
+      "operator": ">",
+      "value": 90,
+      "weight": -1.5
+    },
+    {
+      "id": "macd_bear",
+      "label": "MACD空头 (快线<信号线)",
+      "indicator": "technical.macd_histogram",
+      "operator": "<",
+      "value": 0,
+      "weight": -1.5
+    },
+    {
+      "id": "risk_high",
+      "label": "综合风险分>70",
+      "indicator": "risk.score",
+      "operator": ">",
+      "value": 70,
+      "weight": -1.0
+    }
+  ],
+  "updated_at": "2026-06-08T21:39:17.356757+00:00",
+  "created_at": "2026-06-08T21:39:17.356757+00:00"
+}
