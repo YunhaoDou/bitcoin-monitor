@@ -36,7 +36,6 @@ DASHBOARD_HTML = r"""<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>₿ 比特币实时监控面板</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -425,17 +424,27 @@ function renderDashboard(d) {
 }
 
 function updatePriceChart(marketChart) {
+  // Skip if Chart.js not loaded yet
+  if (typeof Chart === 'undefined') {
+    console.log('Chart.js not loaded yet, will retry...');
+    setTimeout(() => updatePriceChart(marketChart), 2000);
+    return;
+  }
+
   let chartData = [];
   if (marketChart && marketChart.length > 0) {
     chartData = marketChart.map(p => ({ t: new Date(p[0]), y: p[1] }));
   }
 
-  const ctx = document.getElementById('priceChart').getContext('2d');
+  const canvas = document.getElementById('priceChart');
+  if (!canvas) return;
 
+  const ctx = canvas.getContext('2d');
+
+  // Destroy existing chart before creating new one
   if (priceChart) {
-    priceChart.data.datasets[0].data = chartData;
-    priceChart.update('none');
-    return;
+    priceChart.destroy();
+    priceChart = null;
   }
 
   priceChart = new Chart(ctx, {
@@ -460,7 +469,6 @@ function updatePriceChart(marketChart) {
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      animation: { duration: 400 },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -494,6 +502,7 @@ fetchData();
 updateTimer = setInterval(fetchData, 60000);
 setInterval(updateCountdown, 1000);
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
 </body>
 </html>"""
 

@@ -109,33 +109,36 @@
 git clone https://github.com/YunhaoDou/bitcoin-monitor.git
 cd bitcoin-monitor
 
-# （可选）创建虚拟环境
-python3 -m venv .venv
-source .venv/bin/activate
-
-# 无额外依赖——仅使用 Python 标准库
+# 无需额外依赖——仅使用 Python 3 标准库
 ```
 
-### 运行
+### 快速启动
 
 ```bash
-# 1️⃣ 采集数据 + 生成分析报告
-python scripts/orchestrator.py
+# 1️⃣ 立即采集数据 + 生成报告
+python scripts/scheduler.py
 
 # 2️⃣ 启动可视化面板
-bash server.sh start
+bash server.sh dashboard start
 
 # 3️⃣ 打开浏览器
 open http://localhost:8765
+
+# 4️⃣ 启动后台自动调度（每12h自动采集）
+bash server.sh scheduler start
 ```
 
-### 面板管理
+### 完整命令
 
 ```bash
-bash server.sh start   # 启动面板
-bash server.sh stop    # 停止面板
-bash server.sh status  # 查看状态
+bash server.sh dashboard start|stop|status    # 面板管理
+bash server.sh scheduler start|stop|status    # 调度器管理
+bash server.sh run                            # 立即运行一次
 ```
+
+---
+
+## 📊 可视化面板
 
 ---
 
@@ -218,20 +221,59 @@ bitcoin-monitor/
 
 ---
 
-## 🔄 定时任务
+## 🔄 自动调度
 
-系统通过 Hermes cron 每12小时自动运行：
+系统内置调度器，无需外部 cron 依赖：
+
+### 启动调度器
 
 ```bash
-# 查看已配置的定时任务
-# （通过 Hermes 面板管理）
+# 后台运行（每12h采集 + 更新面板）
+bash server.sh scheduler start
+
+# 查看状态
+bash server.sh scheduler status
+
+# 停止调度器
+bash server.sh scheduler stop
 ```
 
-运行流程：
-1. 采集 CoinGecko + Blockchain.info 数据
-2. 计算技术指标和风险评分
-3. 生成中文 Markdown 分析报告
-4. 更新原始 JSON 数据 → 面板自动反映最新数据
+### 调度器工作原理
+
+```bash
+# 相当于每12小时自动运行：
+python scripts/scheduler.py
+
+# 内部流程：
+# 1. 采集 CoinGecko + Blockchain.info 数据
+# 2. 计算技术指标和风险评分
+# 3. 生成中文 Markdown 分析报告
+# 4. 生成 HTML 仪表盘
+# 5. 面板自动反映最新数据（60s刷新）
+```
+
+### 自定义间隔
+
+```bash
+# 每6小时运行一次（前台）
+python scripts/scheduler.py --loop --interval 6
+
+# 每30分钟运行一次（调试用）
+python scripts/scheduler.py --loop --interval 0.5
+```
+
+### 系统 cron（替代方案）
+
+如果偏好系统的 cron 而非内置调度器：
+
+```bash
+# Linux (crontab -e)
+0 */12 * * * cd ~/bitcoin-monitor && python scripts/scheduler.py
+
+# macOS (launchd)
+# 或使用 crontab:
+0 */12 * * * cd ~/bitcoin-monitor && python scripts/scheduler.py
+```
 
 ---
 
