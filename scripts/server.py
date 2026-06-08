@@ -426,7 +426,17 @@ function renderDashboard(d) {
 function updatePriceChart(marketChart) {
   // Skip if Chart.js not loaded yet
   if (typeof Chart === 'undefined') {
-    console.log('Chart.js not loaded yet, will retry...');
+    // If it's been 15+ seconds, give up and show text
+    if (window.__chartJsFallbackTimer) clearTimeout(window.__chartJsFallbackTimer);
+    window.__chartJsFallbackTimer = setTimeout(() => {
+      if (typeof Chart === 'undefined') {
+        const canvas = document.getElementById('priceChart');
+        if (canvas) {
+          const parent = canvas.parentElement;
+          parent.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b">📈 Chart.js 无法加载<br><span style="font-size:0.8rem">请在浏览器中允许加载 cdn.jsdelivr.net</span></div>';
+        }
+      }
+    }, 15000);
     setTimeout(() => updatePriceChart(marketChart), 2000);
     return;
   }
@@ -502,7 +512,18 @@ fetchData();
 updateTimer = setInterval(fetchData, 60000);
 setInterval(updateCountdown, 1000);
 </script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer onerror="this.onerror=null;this.src='https://unpkg.com/chart.js@4.4.7/dist/chart.umd.min.js'" onload="window.__chartJsLoaded=true"></script>
+<script>document.addEventListener('DOMContentLoaded',function(){
+  // Fallback: if Chart.js hasn't loaded after 8 seconds, load from cdnjs
+  setTimeout(function(){
+    if(!window.__chartJsLoaded && typeof Chart==='undefined'){
+      var s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.7/chart.umd.min.js';
+      s.defer=true;
+      document.body.appendChild(s);
+    }
+  },8000);
+});</script>
 </body>
 </html>"""
 
