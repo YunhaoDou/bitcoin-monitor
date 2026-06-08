@@ -424,27 +424,35 @@ function renderDashboard(d) {
 }
 
 function updatePriceChart(marketChart) {
-  // Skip if Chart.js not loaded yet
-  if (typeof Chart === 'undefined') {
-    // If it's been 15+ seconds, give up and show text
-    if (window.__chartJsFallbackTimer) clearTimeout(window.__chartJsFallbackTimer);
-    window.__chartJsFallbackTimer = setTimeout(() => {
-      if (typeof Chart === 'undefined') {
-        const canvas = document.getElementById('priceChart');
-        if (canvas) {
-          const parent = canvas.parentElement;
-          parent.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b">📈 Chart.js 无法加载<br><span style="font-size:0.8rem">请在浏览器中允许加载 cdn.jsdelivr.net</span></div>';
+    // Skip if Chart.js not loaded yet
+    if (typeof Chart === 'undefined') {
+      if (window.__chartJsFallbackTimer) clearTimeout(window.__chartJsFallbackTimer);
+      window.__chartJsFallbackTimer = setTimeout(() => {
+        if (typeof Chart === 'undefined') {
+          const canvas = document.getElementById('priceChart');
+          if (canvas) {
+            const parent = canvas.parentElement;
+            parent.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b">📈 Chart.js 无法加载<br><span style="font-size:0.8rem">请在浏览器中允许加载 cdn.jsdelivr.net</span></div>';
+          }
         }
-      }
-    }, 15000);
-    setTimeout(() => updatePriceChart(marketChart), 2000);
-    return;
-  }
+      }, 15000);
+      setTimeout(() => updatePriceChart(marketChart), 2000);
+      return;
+    }
 
-  let chartData = [];
-  if (marketChart && marketChart.length > 0) {
-    chartData = marketChart.map(p => ({ t: new Date(p[0]), y: p[1] }));
-  }
+    let chartData = [];
+    let dataPointLabels = {};
+    if (marketChart && marketChart.length > 0) {
+      chartData = marketChart.map((p, i) => {
+        // Format readable date label for each point
+        const d = new Date(p[0]);
+        const month = (d.getMonth()+1).toString().padStart(2,'0');
+        const day = d.getDate().toString().padStart(2,'0');
+        const hour = d.getHours().toString().padStart(2,'0');
+        dataPointLabels[i] = month + '/' + day + ' ' + hour + ':00';
+        return { x: i, y: p[1] };
+      });
+    }
 
   const canvas = document.getElementById('priceChart');
   if (!canvas) return;
@@ -477,32 +485,36 @@ function updatePriceChart(marketChart) {
       }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(15,23,42,0.9)',
-          borderColor: 'rgba(247,147,26,0.3)', borderWidth: 1,
-          callbacks: {
-            title: items => items[0]?.parsed?.x
-              ? new Date(items[0].parsed.x).toLocaleString('zh-CN', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})
-              : '',
-            label: ctx => '$' + Number(ctx.parsed.y).toLocaleString('en-US', {minimumFractionDigits:0})
-          }
-        }
-      },
-      scales: {
-        x: {
-          type: 'time', time: { unit: 'day', displayFormats: { day: 'MM/dd' } },
-          grid: { color: 'rgba(255,255,255,0.03)' },
-          ticks: { color: '#64748b', maxTicksLimit: 8 }
-        },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.03)' },
-          ticks: { color: '#64748b', callback: v => '$' + Number(v).toLocaleString('en-US') }
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(15,23,42,0.9)',
+        borderColor: 'rgba(247,147,26,0.3)', borderWidth: 1,
+        callbacks: {
+          title: items => items[0]?.parsed?.x
+            ? dataPointLabels[items[0].parsed.x] || ''
+            : '',
+          label: ctx => '$' + Number(ctx.parsed.y).toLocaleString('en-US', {minimumFractionDigits:0})
         }
       }
+    },
+    scales: {
+      x: {
+        type: 'linear',
+        grid: { color: 'rgba(255,255,255,0.03)' },
+        ticks: {
+          color: '#64748b',
+          maxTicksLimit: 8,
+          callback: function(val) { return dataPointLabels[val] || ''; }
+        }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.03)' },
+        ticks: { color: '#64748b', callback: v => '$' + Number(v).toLocaleString('en-US') }
+      }
+    }
     }
   });
 }
